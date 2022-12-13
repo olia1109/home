@@ -1,0 +1,77 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+
+namespace hw6
+{
+    // створила необхідні класи Book та PublishingHouse
+    public class Book
+    {
+        [JsonIgnore] 
+        public int PublishingHouseId { get; set; }
+        [JsonPropertyName("Name")]
+        public string Title { get; }
+        public PublishingHouse PublishingHouse { get; set; }
+
+        public Book(int publishingHouseId, string title, PublishingHouse publishingHouse)
+        {
+            PublishingHouseId = publishingHouseId;
+            Title = title;
+            PublishingHouse = publishingHouse;
+        }
+
+        public void printBook()
+        {
+            Console.WriteLine("Title : "+ Title);
+            Console.WriteLine("ID : "+  PublishingHouseId);
+            PublishingHouse.printHouse();
+            Console.WriteLine();
+        }
+        
+    }
+    public class PublishingHouse
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Adress { get; set; }
+
+        public PublishingHouse(int id, string name, string adress) {
+            Id = id;
+            Name = name;
+            Adress = adress;
+        }
+
+        public void printHouse() {
+            Console.WriteLine("PHID : "+Id+ "\n"+ "Name : " + Name + "\n"+ "Adress : " + Adress);
+        }
+    }
+    class Program {
+        public static async Task Main(string[] args) {
+            string path = @"json.json";
+            List<Book> books = new List<Book>();
+
+            using (FileStream fs = new FileStream(path, FileMode.Open)) {
+                books = await JsonSerializer.DeserializeAsync<List<Book>>(fs);
+                foreach (Book book in books) {
+                    book.printBook();
+                }
+            }
+            
+            path = @"nn.json";
+            books.Clear();
+            books.Add(new Book(1, "Algebra", new PublishingHouse(1, "house1", "kyiv")));
+            books.Add(new Book(1, "Geometry", new PublishingHouse(1, "house2", "kyiv")));
+            books.Add(new Book(2, "Ukrainian", new PublishingHouse(2, "house3", "kyiv")));
+
+            var options = new JsonSerializerOptions {
+                WriteIndented = true
+            };
+
+            using (FileStream fstream = new FileStream(path, FileMode.Create)) {
+                await JsonSerializer.SerializeAsync(fstream, books, options);
+            }
+            Console.Out.WriteLine("File was created");
+            Console.ReadKey();
+        }
+    }
+}
